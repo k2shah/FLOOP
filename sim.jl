@@ -1,4 +1,22 @@
 #PCC 
+function ccQuick(k, l)
+	n=length(k) #get num segemnts 
+	p=zeros(n+1, 2) #[x, y]
+	t=zeros(n+1) #[angle]
+	#calculate profile 
+	for i=1:n
+		t[i+1]=t[i]+k[i]*l
+		if k[i]==0 #handles 0 curvature 
+			p[i+1, 1]=p[i, 1]+cos(t[i+1])*l #update x 
+	        p[i+1, 2]=p[i, 2]+sin(t[i+1])*l #update y
+		else
+			p[i+1, 1]=p[i, 1]+(sin(t[i+1])-sin(t[i]))/k[i] #update x 
+	        p[i+1, 2]=p[i, 2]+(-cos(t[i+1])+cos(t[i]))/k[i] #update y
+	    end
+	end
+	return p
+end
+
 function ccArm2(k, res, l)
 	
 	n=length(k) #get num segemnts 
@@ -8,8 +26,13 @@ function ccArm2(k, res, l)
 	#calculate profile 
 	for i=1:(n*res)
 		t[i+1]=t[i]+k[i]*l
-		p[i+1, 1]=p[i, 1]+(sin(t[i+1])-sin(t[i]))/k[i] #update x 
-        p[i+1, 2]=p[i, 2]+(-cos(t[i+1])+cos(t[i]))/k[i] #update y
+		if k[i]==0 #handles 0 curvature 
+			p[i+1, 1]=p[i, 1]+cos(t[i+1])*l #update x 
+	        p[i+1, 2]=p[i, 2]+sin(t[i+1])*l #update y
+		else
+			p[i+1, 1]=p[i, 1]+(sin(t[i+1])-sin(t[i]))/k[i] #update x 
+	        p[i+1, 2]=p[i, 2]+(-cos(t[i+1])+cos(t[i]))/k[i] #update y
+	    end
 	end
 	e=zeros(n+1,2) #get edge values
 	for i=1:n+1
@@ -54,7 +77,7 @@ type Obs
 	r
 end
 
-function drawObs(obs::Obs)
+function drawObs(obs::Obs, draw=0)
 	t=[linspace(0,2*pi,10)]
 	p=zeros(length(t),2)
 	for i=1:length(t)
@@ -65,11 +88,13 @@ function drawObs(obs::Obs)
 end
 
 
-function obsCollide(obj, obs::Obs, thre=1.1)
+function obsCollide(obj, obs::Obs, thre=1.1, draw=0)
 	for i=1:size(obj, 1)
 		if norm(obj[i, :]-obs.c)<(obs.r*thre)
-			println("obstacle collision at $(obj[i,:])")
-			plot(obj[i, 1], obj[i, 2], "k*")
+			if draw==1
+				println("obstacle collision at $(obj[i,:])")
+				plot(obj[i, 1], obj[i, 2], "k*")
+			end
 			return obj[i,:]
 		end
 	end
