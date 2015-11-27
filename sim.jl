@@ -38,7 +38,7 @@ function ccArm2(k, res, l)
 	for i=1:n+1
 		e[i,:]=p[(i-1)*res+1,:]
 	end
-	println("Generated Arm wth $(n) segments")
+	#println("Generated Arm wth $(n) segments")
 	return (p, e, t)
 end
 function drawArm(p, e, res)
@@ -77,13 +77,13 @@ type Obs
 	r
 end
 
-function drawObs(obs::Obs, draw=0)
+function drawObs(obs::Obs)
 	t=[linspace(0,2*pi,10)]
 	p=zeros(length(t),2)
 	for i=1:length(t)
 		p[i,:]=obs.c+obs.r*[cos(t[i]) sin(t[i])]
 	end
-	plot(p[:,1], p[:,2], "o")
+	plot(p[:,1], p[:,2], "ko")
 	return p
 end
 
