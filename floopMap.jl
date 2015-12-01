@@ -11,6 +11,10 @@ function makeMap(range, nSeg)
 	return abstractMap(range, int64(ones(nSeg)*n), n, n^nSeg)
 end
 
+function randEval(space::abstractMap) #returns some random evaluated point in the space (useful for getting random state)
+	return ind2eval(rand(1:space.nSize), space)
+end
+
 function ind2eval(ind, space::abstractMap) #maps space index to value 
 	#function body
 	sub=ind2sub(tuple(space.sub...), ind)

@@ -1,5 +1,6 @@
 #PCC 
-function ccQuick(k, l)
+function ccQuick(k, l=1)
+	k=map(deg2rad, k)
 	n=length(k) #get num segemnts 
 	p=zeros(n+1, 2) #[x, y]
 	t=zeros(n+1) #[angle]
@@ -17,8 +18,13 @@ function ccQuick(k, l)
 	return p
 end
 
-function ccArm2(k, res, l)
-	
+function ccEnd(k, l=1)
+	return ccQuick(k, l)[end,:]
+end
+
+function ccArm2(k, res=10, l=1)
+	l=l/res 
+	k=map(deg2rad, k)
 	n=length(k) #get num segemnts 
 	k=vec(repmat(k', res )) #set curv for each subsegment 
 	p=zeros(n*res+1, 2) #[x, y]
@@ -39,21 +45,25 @@ function ccArm2(k, res, l)
 		e[i,:]=p[(i-1)*res+1,:]
 	end
 	#println("Generated Arm wth $(n) segments")
-	return (p, e, t)
+	return (p, e)
 end
-function drawArm(p, e, res)
+
+function drawArm(arm, edge, res=10)
 	gcol=["c","b","r", "g", "m"]
 	#plot end eff
-	plot([p[end,1]],[p[end, 2]], "k*")
+	plot([arm[end,1]],[arm[end, 2]], "k*")
 	
 	#plot profile and edges
 	for i=1:nSeg
 	    inx=(i-1)*res+1
 	    plot(arm[inx:inx+res, 1],arm[inx:inx+res, 2], gcol[i%5+1])
-	    plot(e[i, 1], e[i, 2], gcol[i%5+1]*"o")
+	    plot(edge[i, 1], edge[i, 2], gcol[i%5+1]*"o")
 	end
 end
-
+function drawArm(state)
+	(p,e)=ccArm2(state)
+	drawArm(p, e)
+end
 
 function selfCollide(p, thre)
 	n=size(p,1)
@@ -72,35 +82,40 @@ function selfCollide(p, thre)
 	return 0
 end 
 
-type Obs
-	c
-	r
+type Zone
+	cent
+	radius
 end
 
-function drawObs(obs::Obs)
+function drawZone(zone::Zone)
 	t=[linspace(0,2*pi,10)]
 	p=zeros(length(t),2)
 	for i=1:length(t)
-		p[i,:]=obs.c+obs.r*[cos(t[i]) sin(t[i])]
+		p[i,:]=zone.cent+zone.radius*[cos(t[i]) sin(t[i])]
 	end
 	plot(p[:,1], p[:,2], "ko")
 	return p
 end
 
 
-function obsCollide(obj, obs::Obs, thre=1.1, draw=0)
-	for i=1:size(obj, 1)
-		if norm(obj[i, :]-obs.c)<(obs.r*thre)
+function obsCollide(arm, zone::Zone, thre=1.1, draw=0)
+	for i=1:size(arm, 1)
+		if norm(arm[i, :]-zone.cent)<(zone.radius*thre)
 			if draw==1
-				println("obstacle collision at $(obj[i,:])")
-				plot(obj[i, 1], obj[i, 2], "k*")
+				println("obstacle collision at $(arm[i,:])")
+				plot(arm[i, 1], arm[i, 2], "k*")
 			end
-			return obj[i,:]
+			return arm[i,:]
 		end
 	end
 	println("no obstacle collsions founds")
 	return 0
 end
+
+function zoneDist(s, zone::Zone)
+    return norm(zone.cent- ccEnd(s))
+end
+
 
 ###########broken or unused
 
